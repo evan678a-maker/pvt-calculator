@@ -219,7 +219,12 @@ async function fetchTimezone(lat, lon){
     return null;
   }
 }
-// ====== Fetch TMY from your Render backend ======
+// ====== Fetch TMY: try localhost first, fall back to Render ======
+const TMY_ENDPOINTS = [
+  "http://localhost:8000/tmy",
+  "https://pvt-tmy-api-e66w.onrender.com"
+];
+
 async function fetchTMY(lat, lon){
   const tzName = (CURRENT_TZ && CURRENT_TZ.timeZone) ? CURRENT_TZ.timeZone : "";
   const gmtOffset = (CURRENT_TZ && Number.isFinite(CURRENT_TZ.gmtOffset)) ? CURRENT_TZ.gmtOffset : "";
@@ -227,10 +232,19 @@ async function fetchTMY(lat, lon){
   const tzParams = tzName ? `&tzName=${encodeURIComponent(tzName)}` : "";
   const offsetParams = (typeof gmtOffset === "number" && isFinite(gmtOffset)) ? `&gmtOffset=${gmtOffset}` : "";
 
-  const url = `https://https://pvt-tmy-api-e66w.onrender.com/tmy?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}${tzParams}${offsetParams}`;
-  const resp = await fetch(url, { headers: { "Accept": "application/json" } });
-  if (!resp.ok) throw new Error("TMY fetch failed: " + resp.status);
-  return await resp.json();
+  const query = `?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}${tzParams}${offsetParams}`;
+
+  for (const base of TMY_ENDPOINTS) {
+    try {
+      const resp = await fetch(base + query, { headers: { "Accept": "application/json" } });
+      if (!resp.ok) continue;          // try next endpoint
+      console.log("TMY served by:", base);
+      return await resp.json();
+    } catch (e) {
+      console.warn(`TMY endpoint ${base} unreachable:`, e.message);
+    }
+  }
+  throw new Error("TMY fetch failed: all endpoints unreachable");
 }
 
 // day-of-year helper (non-leap year)
@@ -514,4 +528,3 @@ async function calcAnnualPVT(){
 </div>
 </body>
 </html>
-
