@@ -227,7 +227,7 @@ async function fetchTMY(lat, lon){
   const tzParams = tzName ? `&tzName=${encodeURIComponent(tzName)}` : "";
   const offsetParams = (typeof gmtOffset === "number" && isFinite(gmtOffset)) ? `&gmtOffset=${gmtOffset}` : "";
 
-  const url = `https://pvt-tmy-api.onrender.com/tmy?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}${tzParams}${offsetParams}`;
+  const url = `https://https://pvt-tmy-api-e66w.onrender.com/tmy?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}${tzParams}${offsetParams}`;
   const resp = await fetch(url, { headers: { "Accept": "application/json" } });
   if (!resp.ok) throw new Error("TMY fetch failed: " + resp.status);
   return await resp.json();
@@ -514,3 +514,4 @@ async function calcAnnualPVT(){
 </div>
 </body>
 </html>
+
